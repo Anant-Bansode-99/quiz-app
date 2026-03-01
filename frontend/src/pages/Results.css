@@ -1,0 +1,110 @@
+.results-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 120px);
+}
+
+.results-card {
+    width: 100%;
+    max-width: 500px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 0 40px var(--card-glow, transparent) !important;
+    transition: box-shadow 1s ease;
+}
+
+.results-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+}
+
+.results-title {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff, var(--text-muted));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.results-message {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.score-circle {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 2rem;
+}
+
+.circular-chart {
+    display: block;
+    margin: 0 auto;
+    max-width: 80%;
+    max-height: 250px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 2;
+}
+
+.circle {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    animation: progress 1.5s ease-out forwards;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0 100;
+    }
+}
+
+.percentage {
+    fill: white;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.5em;
+    font-weight: bold;
+    text-anchor: middle;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 1.05rem;
+    border: 1px solid var(--card-border);
+}
+
+.text-primary {
+    color: var(--primary);
+}
+
+.results-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}.answers-breakdown { margin-top: 2rem; width: 100%; text-align: left; } .answer-card { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; background: rgba(0,0,0,0.2); } .answer-card h4 { margin-top: 0; margin-bottom: 0.5rem; } .answer-option { padding: 0.5rem; border-radius: 4px; margin-bottom: 0.25rem; } .option-correct { background: rgba(16, 185, 129, 0.2); border-left: 3px solid #10b981; } .option-incorrect { background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444; } .option-neutral { background: rgba(255, 255, 255, 0.05); }
