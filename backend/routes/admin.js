@@ -51,30 +51,36 @@ router.post('/quizzes', (req, res) => {
         });
 });
 
-// Edit quiz (only if creator)
+// Edit quiz (any admin can edit)
 router.put('/quizzes/:id', (req, res) => {
     const { title, description, time_limit } = req.body;
-    db.run(`UPDATE quizzes SET title = ?, description = ?, time_limit = ? WHERE id = ? AND created_by = ?`,
-        [title, description, time_limit || 0, req.params.id, req.user.id], function (err) {
+    db.run(`UPDATE quizzes SET title = ?, description = ?, time_limit = ? WHERE id = ?`,
+        [title, description, time_limit || 0, req.params.id], function (err) {
             if (err) return res.status(500).json({ message: 'Database error' });
-            if (this.changes === 0) return res.status(403).json({ message: 'Not authorized to edit this quiz' });
+            if (this.changes === 0) return res.status(404).json({ message: 'Quiz not found' });
             res.json({ message: 'Quiz updated' });
         });
 });
 
-// Delete quiz (only if creator)
+// Delete quiz (any admin can delete any quiz)
 router.delete('/quizzes/:id', (req, res) => {
-    db.run(`DELETE FROM quizzes WHERE id = ? AND created_by = ?`, [req.params.id, req.user.id], function (err) {
-        if (err) return res.status(500).json({ message: 'Database error' });
-        if (this.changes === 0) return res.status(403).json({ message: 'Not authorized to delete this quiz' });
-        res.json({ message: 'Quiz deleted' });
+    const id = req.params.id;
+    // Manually delete related records first to avoid FK constraint issues
+    db.serialize(() => {
+        db.run(`DELETE FROM results WHERE quiz_id = ?`, [id]);
+        db.run(`DELETE FROM questions WHERE quiz_id = ?`, [id]);
+        db.run(`DELETE FROM quizzes WHERE id = ?`, [id], function (err) {
+            if (err) return res.status(500).json({ message: 'Database error: ' + err.message });
+            if (this.changes === 0) return res.status(404).json({ message: 'Quiz not found' });
+            res.json({ message: 'Quiz deleted' });
+        });
     });
 });
 
 // Add a question to a quiz
 router.post('/quizzes/:id/questions', (req, res) => {
     const quizId = req.params.id;
-    const { question_text, options, correct_answer } = req.body; // options as array
+    const { question_text, options, correct_answer } = req.body;
 
     if (!question_text || !options || options.length < 2 || correct_answer === undefined) {
         return res.status(400).json({ message: 'Invalid question data' });
