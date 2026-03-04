@@ -52,7 +52,7 @@ const Admin = () => {
         });
     };
 
-    const fetchData = async () => {
+    const loadQuizzes = async () => {
         try {
             const q = await getAdminQuizzes();
             setQuizzes(q);
@@ -64,7 +64,8 @@ const Admin = () => {
     };
 
     useEffect(() => {
-        fetchData();
+        loadQuizzes();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleCreateQuiz = async (e) => {
@@ -80,7 +81,7 @@ const Admin = () => {
         try {
             await createQuiz(newQuiz);
             setNewQuiz({ title: '', description: '', time_limit: 0, questions: [] });
-            fetchData();
+            loadQuizzes();
             alert('Quiz created successfully!');
         } catch (err) {
             alert(err.message);
@@ -91,7 +92,7 @@ const Admin = () => {
         if (window.confirm('Are you sure you want to delete this quiz? This will wipe all its questions and student results.')) {
             try {
                 await deleteQuiz(id);
-                fetchData();
+                loadQuizzes();
             } catch (err) {
                 alert(err.message);
             }

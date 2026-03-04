@@ -25,7 +25,7 @@ const Navbar = ({ user, onLogout }) => {
             <div className="nav-user">
                 <div className="user-info">
                     <UserCircle size={20} />
-                    <span>{user.username}</span>
+                    <span>{user.email}</span>
                 </div>
                 <button className="btn btn-outline nav-logout" onClick={onLogout}>
                     <LogOut size={16} /> Logout

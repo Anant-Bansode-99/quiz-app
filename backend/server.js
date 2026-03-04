@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -17,10 +18,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/admin', adminRoutes);
 
-app.get('/', (req, res) => {
-    res.send('Quiz API is running.');
+// Serve built React frontend
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendDist));
+
+// Catch-all: send React's index.html for any non-API route (Express 5 syntax)
+app.get('/{*splat}', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });

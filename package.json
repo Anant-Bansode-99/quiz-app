@@ -4,8 +4,9 @@
     "description": "Full-stack Quiz Application",
     "scripts": {
         "install:all": "npm install --prefix backend && npm install --prefix frontend",
-        "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm run start --prefix backend\" \"npm run dev --prefix frontend\"",
-        "start": "npm run dev"
+        "build": "npm run build --prefix frontend",
+        "start": "npm run build && node backend/server.js",
+        "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
     },
     "devDependencies": {
         "concurrently": "^9.1.2"

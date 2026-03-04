@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getQuiz, submitQuiz } from '../services/api';
 import { Clock, AlertCircle, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -52,7 +52,7 @@ const QuizPage = () => {
                 setTimeLeft(prev => {
                     if (prev <= 1) {
                         clearInterval(timer);
-                        if (!isSubmitting) handleSubmit(); // Auto submit
+                        handleSubmit(); // Auto submit on timeout
                         return 0;
                     }
                     return prev - 1;
@@ -60,7 +60,8 @@ const QuizPage = () => {
             }
         }, 1000);
         return () => clearInterval(timer);
-    }, [timeLeft, isSubmitting]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [timeLeft, isSubmitting, handleSubmit]);
 
     const handleSelectOption = (questionId, optionIndex) => {
         setAnswers(prev => {
@@ -74,18 +75,17 @@ const QuizPage = () => {
         });
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = useCallback(async () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
         try {
-            // elapsedTime is tracked in state via the interval
             const res = await submitQuiz(id, answers, elapsedTime);
             navigate(`/results/${res.resultId}`, { state: { score: res.score, total: res.totalQuestions } });
         } catch (err) {
             alert('Error submitting quiz');
             setIsSubmitting(false);
         }
-    };
+    }, [id, answers, elapsedTime, isSubmitting, navigate]);
 
     if (loading) return <div className="loading-spinner">Loading Quiz...</div>;
     if (error) return <div className="error-message"><AlertCircle /> {error}</div>;
@@ -157,7 +157,7 @@ const QuizPage = () => {
                         const isSelected = currentAnswer === idx;
                         return (
                             <div
-                                key={idx}
+                                key={`${q.id}-${idx}`}
                                 className={`option-item ${isSelected ? 'selected' : ''}`}
                                 onClick={() => handleSelectOption(q.id, idx)}
                             >

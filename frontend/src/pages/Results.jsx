@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Award, Target, Home, RefreshCcw, Check, X, Trophy } from 'lucide-react';
+import { Award, Target, Home, Check, X, Trophy } from 'lucide-react';
 import { getResultDetails } from '../services/api';
 import './Results.css';
 

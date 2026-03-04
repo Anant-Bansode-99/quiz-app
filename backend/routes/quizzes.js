@@ -16,7 +16,38 @@ router.get('/', (req, res) => {
     });
 });
 
-// Get quiz details and questions by ID
+// ⚠️ Specific named routes MUST come before /:id wildcard
+
+// Get user history
+router.get('/user/history', authenticate, (req, res) => {
+    db.all(`SELECT r.*, q.title FROM results r JOIN quizzes q ON r.quiz_id = q.id WHERE r.user_id = ? ORDER BY r.created_at DESC`, [req.user.id], (err, rows) => {
+        if (err) return res.status(500).json({ message: 'Database error' });
+        res.json(rows);
+    });
+});
+
+// Get specific result details
+router.get('/results/:id/details', authenticate, (req, res) => {
+    const resultId = req.params.id;
+
+    db.get(`SELECT * FROM results WHERE id = ? AND user_id = ?`, [resultId, req.user.id], (err, result) => {
+        if (err) return res.status(500).json({ message: 'Database error' });
+        if (!result) return res.status(404).json({ message: 'Result not found or unauthorized' });
+
+        db.all(`SELECT id, question_text, options, correct_answer FROM questions WHERE quiz_id = ?`, [result.quiz_id], (err, questions) => {
+            if (err) return res.status(500).json({ message: 'Database error' });
+
+            const formattedQuestions = questions.map(q => ({
+                ...q,
+                options: JSON.parse(q.options)
+            }));
+
+            res.json({ result: { ...result, answers: JSON.parse(result.answers) }, questions: formattedQuestions });
+        });
+    });
+});
+
+// Get quiz details and questions by ID (wildcard — must come after named routes)
 router.get('/:id', authenticate, (req, res) => {
     const quizId = req.params.id;
     const userId = req.user.id;
@@ -36,7 +67,6 @@ router.get('/:id', authenticate, (req, res) => {
             db.all(`SELECT id, question_text, options FROM questions WHERE quiz_id = ?`, [quizId], (err, questions) => {
                 if (err) return res.status(500).json({ message: 'Database error' });
 
-                // Parse JSON options
                 const formattedQuestions = questions.map(q => ({
                     ...q,
                     options: JSON.parse(q.options)
@@ -52,7 +82,7 @@ router.get('/:id', authenticate, (req, res) => {
 router.post('/:id/submit', authenticate, (req, res) => {
     const quizId = req.params.id;
     const userId = req.user.id;
-    const { answers, time_taken } = req.body; // array of { questionId, selectedOptionIndex } and time_taken in seconds
+    const { answers, time_taken } = req.body;
 
     // Block duplicate attempts
     db.get(`SELECT id FROM results WHERE user_id = ? AND quiz_id = ?`, [userId, quizId], (err, existing) => {
@@ -86,18 +116,10 @@ router.post('/:id/submit', authenticate, (req, res) => {
                     res.json({ score, totalQuestions, resultId: this.lastID, time_taken: timeTaken });
                 });
         });
-    } // end proceedWithSubmit
+    }
 });
 
-// Get user history
-router.get('/user/history', authenticate, (req, res) => {
-    db.all(`SELECT r.*, q.title FROM results r JOIN quizzes q ON r.quiz_id = q.id WHERE r.user_id = ? ORDER BY r.created_at DESC`, [req.user.id], (err, rows) => {
-        if (err) return res.status(500).json({ message: 'Database error' });
-        res.json(rows);
-    });
-});
-
-// Get quiz leaderboard (all users ranked for a specific quiz)
+// Get quiz leaderboard
 router.get('/:id/leaderboard', authenticate, (req, res) => {
     const quizId = req.params.id;
     db.all(`
@@ -111,27 +133,6 @@ router.get('/:id/leaderboard', authenticate, (req, res) => {
     `, [quizId], (err, rows) => {
         if (err) return res.status(500).json({ message: 'Database error' });
         res.json(rows);
-    });
-});
-
-// Get specific result details
-router.get('/results/:id/details', authenticate, (req, res) => {
-    const resultId = req.params.id;
-
-    db.get(`SELECT * FROM results WHERE id = ? AND user_id = ?`, [resultId, req.user.id], (err, result) => {
-        if (err) return res.status(500).json({ message: 'Database error' });
-        if (!result) return res.status(404).json({ message: 'Result not found or unauthorized' });
-
-        db.all(`SELECT id, question_text, options, correct_answer FROM questions WHERE quiz_id = ?`, [result.quiz_id], (err, questions) => {
-            if (err) return res.status(500).json({ message: 'Database error' });
-
-            const formattedQuestions = questions.map(q => ({
-                ...q,
-                options: JSON.parse(q.options)
-            }));
-
-            res.json({ result: { ...result, answers: JSON.parse(result.answers) }, questions: formattedQuestions });
-        });
     });
 });
 
