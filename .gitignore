@@ -1,0 +1,19 @@
+# Dependencies - never push these to GitHub
+node_modules/
+
+# Environment variables - keep secrets off GitHub
+.env
+
+# Build output
+frontend/dist/
+
+# SQLite database file (lives on the server, not in Git)
+backend/database.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
