@@ -42,6 +42,30 @@ const QuizPage = () => {
         fetchQuiz();
     }, [id]);
 
+    const handleSubmit = useCallback(async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            const res = await submitQuiz(id, answers, elapsedTime);
+            navigate(`/results/${res.resultId}`, { state: { score: res.score, total: res.totalQuestions } });
+        } catch (err) {
+            alert('Error submitting quiz');
+            setIsSubmitting(false);
+        }
+    }, [id, answers, elapsedTime, isSubmitting, navigate]);
+
+    const handleSelectOption = (questionId, optionIndex) => {
+        setAnswers(prev => {
+            const existing = prev.findIndex(a => a.questionId === questionId);
+            if (existing >= 0) {
+                const update = [...prev];
+                update[existing] = { questionId, selectedOptionIndex: optionIndex };
+                return update;
+            }
+            return [...prev, { questionId, selectedOptionIndex: optionIndex }];
+        });
+    };
+
     useEffect(() => {
         if (isSubmitting) return;
 
@@ -62,30 +86,6 @@ const QuizPage = () => {
         return () => clearInterval(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timeLeft, isSubmitting, handleSubmit]);
-
-    const handleSelectOption = (questionId, optionIndex) => {
-        setAnswers(prev => {
-            const existing = prev.findIndex(a => a.questionId === questionId);
-            if (existing >= 0) {
-                const update = [...prev];
-                update[existing] = { questionId, selectedOptionIndex: optionIndex };
-                return update;
-            }
-            return [...prev, { questionId, selectedOptionIndex: optionIndex }];
-        });
-    };
-
-    const handleSubmit = useCallback(async () => {
-        if (isSubmitting) return;
-        setIsSubmitting(true);
-        try {
-            const res = await submitQuiz(id, answers, elapsedTime);
-            navigate(`/results/${res.resultId}`, { state: { score: res.score, total: res.totalQuestions } });
-        } catch (err) {
-            alert('Error submitting quiz');
-            setIsSubmitting(false);
-        }
-    }, [id, answers, elapsedTime, isSubmitting, navigate]);
 
     if (loading) return <div className="loading-spinner">Loading Quiz...</div>;
     if (error) return <div className="error-message"><AlertCircle /> {error}</div>;
