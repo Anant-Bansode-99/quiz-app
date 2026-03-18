@@ -1,7 +1,10 @@
 const { Pool } = require('pg');
 
+const isAwsRds = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('amazonaws.com');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ...(isAwsRds && { ssl: { rejectUnauthorized: false } })
 });
 
 pool.on('error', (err) => {
