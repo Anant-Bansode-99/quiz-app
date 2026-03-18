@@ -10,6 +10,9 @@ frontend/dist/
 # SQLite database file (lives on the server, not in Git)
 backend/database.sqlite
 
+# Locally uploaded images (used as S3 fallback in dev)
+backend/uploads/
+
 # OS files
 .DS_Store
 Thumbs.db

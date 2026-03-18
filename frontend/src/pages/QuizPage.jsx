@@ -126,21 +126,29 @@ const QuizPage = () => {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
-    return (
-        <div className="quiz-container animate-fade-in">
-            <div className="quiz-header glass-panel">
-                <div>
-                    <h2 className="quiz-title">{quiz.title}</h2>
-                    <div className="quiz-progress-text">Question {currentQuestion + 1} of {questions.length}</div>
-                </div>
+    const quizBgStyle = quiz.image_url ? {
+        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url(${quiz.image_url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+    } : {};
 
-                {timeLeft !== null && (
-                    <div className={`quiz-timer ${timeLeft < 60 ? 'timer-danger' : ''}`}>
-                        <Clock size={20} />
-                        {formatTime(timeLeft)}
+    return (
+        <div className="quiz-page-wrapper animate-fade-in" style={quizBgStyle}>
+            <div className="quiz-container">
+                <div className="quiz-header glass-panel">
+                    <div>
+                        <h2 className="quiz-title">{quiz.title}</h2>
+                        <div className="quiz-progress-text">Question {currentQuestion + 1} of {questions.length}</div>
                     </div>
-                )}
-            </div>
+
+                    {timeLeft !== null && (
+                        <div className={`quiz-timer ${timeLeft < 60 ? 'timer-danger' : ''}`}>
+                            <Clock size={20} />
+                            {formatTime(timeLeft)}
+                        </div>
+                    )}
+                </div>
 
             <div className="quiz-progress-bar">
                 <div
@@ -149,7 +157,7 @@ const QuizPage = () => {
                 ></div>
             </div>
 
-            <div className="question-card glass-panel">
+            <div className="question-card glass-panel" style={{ padding: '2.5rem' }}>
                 <h3 className="question-text">{q.question_text}</h3>
 
                 <div className="options-list">
@@ -194,7 +202,8 @@ const QuizPage = () => {
                     >
                         <CheckCircle size={18} /> {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
                     </button>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

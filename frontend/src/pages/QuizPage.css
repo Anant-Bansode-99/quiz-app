@@ -1,7 +1,15 @@
+/* Add the wrapper that handles the full-screen background image */
+.quiz-page-wrapper {
+    min-height: calc(100vh - 64px); /* minus navbar height approx */
+    padding-top: 2rem;
+    margin: -2rem; /* Negate the generic container padding from App.css if any */
+    margin-top: 0;
+}
+
 .quiz-container {
     max-width: 800px;
     margin: 0 auto;
-    padding-bottom: 2rem;
+    padding: 0 1rem 2rem 1rem;
 }
 
 .quiz-header {
@@ -72,8 +80,22 @@
 }
 
 .question-card {
-    padding: 2.5rem;
+    /* Padding is now handled inline in QuizPage.jsx so the image can stretch edge-to-edge */
     margin-bottom: 2rem;
+}
+
+.quiz-image-container {
+    width: 100%;
+    height: 220px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.quiz-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .question-text {

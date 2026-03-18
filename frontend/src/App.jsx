@@ -8,6 +8,7 @@ import Results from './pages/Results';
 import Admin from './pages/Admin';
 import AllResults from './pages/AllResults';
 import QuizLeaderboard from './pages/QuizLeaderboard';
+import Profile from './pages/Profile';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -18,8 +19,9 @@ function App() {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const email = localStorage.getItem('email');
+    const name = localStorage.getItem('name');
     if (token) {
-      setUser({ token, role, email });
+      setUser({ token, role, email, name });
     }
     setLoading(false);
   }, []);
@@ -28,6 +30,11 @@ function App() {
     localStorage.setItem('token', userData.token);
     localStorage.setItem('role', userData.role);
     localStorage.setItem('email', userData.username); // Backend still sends 'username' due to DB schema
+    
+    if (userData.name) {
+      localStorage.setItem('name', userData.name);
+    }
+    
     setUser({ ...userData, email: userData.username }); // Map it over in React state
     navigate('/');
   };
@@ -51,6 +58,7 @@ function App() {
           <Route path="/results/:id" element={user ? <Results /> : <Navigate to="/login" />} />
           <Route path="/leaderboard/:id" element={user ? <QuizLeaderboard /> : <Navigate to="/login" />} />
           <Route path="/history" element={user ? <AllResults user={user} /> : <Navigate to="/login" />} />
+          <Route path="/profile" element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/login" />} />
           <Route path="/admin" element={user?.role === 'admin' ? <Admin /> : <Navigate to="/" />} />
         </Routes>
       </div>

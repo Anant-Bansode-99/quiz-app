@@ -55,11 +55,11 @@ const Dashboard = ({ user }) => {
         {user.role === 'admin' ? (
           <>
             <h1>Home Page</h1>
-            <p>Welcome back, {user.email}. Monitor your global Quiz platform.</p>
+            <p>Welcome back, {user.name || user.email}. Monitor your global Quiz platform.</p>
           </>
         ) : (
           <>
-            <h1>Welcome back, {user.email}!</h1>
+            <h1>Welcome back, {user.name || user.email}!</h1>
             <p>Ready to test your knowledge today?</p>
           </>
         )}
@@ -99,6 +99,13 @@ const Dashboard = ({ user }) => {
               ) : (
                 quizzes.map(quiz => (
                   <div key={quiz.id} className="quiz-card glass-panel">
+                    {quiz.image_url && (
+                      <img
+                        src={quiz.image_url}
+                        alt={quiz.title}
+                        style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px 8px 0 0', marginBottom: '0.75rem', display: 'block' }}
+                      />
+                    )}
                     <h3>{quiz.title}</h3>
                     <p className="quiz-desc">{quiz.description}</p>
                     <div className="quiz-meta">

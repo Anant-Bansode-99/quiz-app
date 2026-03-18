@@ -21,11 +21,13 @@ const Navbar = ({ user, onLogout }) => {
                         <Settings size={18} /> Admin Panel
                     </Link>
                 )}
+                <Link to="/profile" className={`nav-link ${isActive('/profile')}`}>
+                    <UserCircle size={18} /> Profile
+                </Link>
             </div>
             <div className="nav-user">
-                <div className="user-info">
-                    <UserCircle size={20} />
-                    <span>{user.email}</span>
+                <div className="user-info" title={user.email}>
+                    <span>{user.name || user.email}</span>
                 </div>
                 <button className="btn btn-outline nav-logout" onClick={onLogout}>
                     <LogOut size={16} /> Logout

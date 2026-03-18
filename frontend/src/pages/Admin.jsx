@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAdminQuizzes, createQuiz, deleteQuiz, addQuestion } from '../services/api';
+import { getAdminQuizzes, createQuiz, deleteQuiz, addQuestion, uploadQuizImage } from '../services/api';
 import { PlusCircle, Trash2, Shield, Trophy } from 'lucide-react';
 import './Admin.css';
 
@@ -14,8 +14,11 @@ const Admin = () => {
         title: '',
         description: '',
         time_limit: 0,
-        questions: []
+        questions: [],
+        image_url: ''
     });
+    const [imagePreview, setImagePreview] = useState('');
+    const [uploading, setUploading] = useState(false);
 
     const addDraftQuestion = () => {
         setNewQuiz(prev => ({
@@ -52,6 +55,21 @@ const Admin = () => {
         });
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const data = await uploadQuizImage(file);
+            setNewQuiz(prev => ({ ...prev, image_url: data.imageUrl }));
+            setImagePreview(URL.createObjectURL(file));
+        } catch (err) {
+            alert('Image upload failed: ' + err.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const loadQuizzes = async () => {
         try {
             const q = await getAdminQuizzes();
@@ -80,7 +98,8 @@ const Admin = () => {
 
         try {
             await createQuiz(newQuiz);
-            setNewQuiz({ title: '', description: '', time_limit: 0, questions: [] });
+            setNewQuiz({ title: '', description: '', time_limit: 0, questions: [], image_url: '' });
+            setImagePreview('');
             loadQuizzes();
             alert('Quiz created successfully!');
         } catch (err) {
@@ -140,6 +159,27 @@ const Admin = () => {
                                 value={newQuiz.time_limit}
                                 onChange={e => setNewQuiz({ ...newQuiz, time_limit: parseInt(e.target.value) || 0 })}
                             />
+                        </div>
+                        <div className="input-group">
+                            <label>Quiz Cover Image (optional)</label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="input-field"
+                                style={{ padding: '0.5rem', cursor: 'pointer' }}
+                                onChange={handleImageUpload}
+                                disabled={uploading}
+                            />
+                            {uploading && (
+                                <p style={{ color: '#a78bfa', marginTop: '0.4rem', fontSize: '0.85rem' }}>⏳ Uploading to S3...</p>
+                            )}
+                            {imagePreview && !uploading && (
+                                <img
+                                    src={imagePreview}
+                                    alt="Quiz preview"
+                                    style={{ marginTop: '0.75rem', width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(139,92,246,0.4)' }}
+                                />
+                            )}
                         </div>
                         <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>

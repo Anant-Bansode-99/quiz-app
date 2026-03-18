@@ -1,72 +1,75 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
 
-const dbPath = path.resolve(__dirname, 'database.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  } else {
-    console.log('Connected to the SQLite database.');
-    db.run("PRAGMA foreign_keys = ON;", (err) => {
-      if (err) console.error("Failed to enable foreign keys", err);
-    });
-
-    db.serialize(() => {
-      // Users Table
-      db.run(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT DEFAULT 'user'
-      )`);
-
-      // Quizzes Table (Added created_by and created_at)
-      db.run(`CREATE TABLE IF NOT EXISTS quizzes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT,
-        time_limit INTEGER DEFAULT 0,
-        created_by INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL
-      )`);
-
-      // Questions Table
-      db.run(`CREATE TABLE IF NOT EXISTS questions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        quiz_id INTEGER NOT NULL,
-        question_text TEXT NOT NULL,
-        options TEXT NOT NULL,
-        correct_answer INTEGER NOT NULL,
-        FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
-      )`);
-
-      // Results Table (Added time_taken)
-      db.run(`CREATE TABLE IF NOT EXISTS results (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        quiz_id INTEGER NOT NULL,
-        score INTEGER NOT NULL,
-        total_questions INTEGER NOT NULL,
-        answers TEXT NOT NULL,
-        time_taken INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-        FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
-      )`);
-
-      // Migration script to update existing tables if they don't have new columns
-      db.run(`ALTER TABLE quizzes ADD COLUMN created_by INTEGER REFERENCES users(id)`, (err) => {
-        if (!err) console.log("Added created_by to quizzes table");
-      });
-      db.run(`ALTER TABLE quizzes ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP`, (err) => {
-        if (!err) console.log("Added created_at to quizzes table");
-      });
-      db.run(`ALTER TABLE results ADD COLUMN time_taken INTEGER DEFAULT 0`, (err) => {
-        if (!err) console.log("Added time_taken to results table");
-      });
-    });
-  }
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
 });
 
-module.exports = db;
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+const initializeDB = async () => {
+  try {
+    console.log('Connected to the PostgreSQL database.');
+    
+    // Users Table
+    await pool.query(`CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT DEFAULT 'user',
+      google_id TEXT,
+      name TEXT
+    )`);
+
+    // Quizzes Table
+    await pool.query(`CREATE TABLE IF NOT EXISTS quizzes (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      time_limit INTEGER DEFAULT 0,
+      created_by INTEGER REFERENCES users (id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      image_url TEXT,
+      bg_image_url TEXT
+    )`);
+
+    // Questions Table
+    await pool.query(`CREATE TABLE IF NOT EXISTS questions (
+      id SERIAL PRIMARY KEY,
+      quiz_id INTEGER NOT NULL REFERENCES quizzes (id) ON DELETE CASCADE,
+      question_text TEXT NOT NULL,
+      options TEXT NOT NULL,
+      correct_answer INTEGER NOT NULL
+    )`);
+
+    // Results Table
+    await pool.query(`CREATE TABLE IF NOT EXISTS results (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+      quiz_id INTEGER NOT NULL REFERENCES quizzes (id) ON DELETE CASCADE,
+      score INTEGER NOT NULL,
+      total_questions INTEGER NOT NULL,
+      answers TEXT NOT NULL,
+      time_taken INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    console.log("Database initialized successfully.");
+  } catch (err) {
+    console.error("Database initialization failed:", err);
+  }
+};
+
+// Run initialization
+if (process.env.DATABASE_URL) {
+    initializeDB();
+} else {
+    console.warn('DATABASE_URL is not set. Skipping DB initialization.');
+}
+
+module.exports = {
+  query: (text, params) => pool.query(text, params),
+  pool
+};
